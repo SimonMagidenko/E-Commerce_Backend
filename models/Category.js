@@ -10,17 +10,21 @@ Category.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true
+      autoIncrement: true,
+      validate: {
+        notNull: true,
+      }
     },
 
     category_name: {
       type: DataTypes.STRING,
-      allowNull: false
-    }
-
-
-
+      allowNull: false,
+      validate: {
+        notNull: true,
+      }
+    },
   },
+
   {
     sequelize,
     timestamps: false,

@@ -3,14 +3,18 @@ const { Tag, Product, ProductTag } = require('../../models');
 
 // The `/api/tags` endpoint
 
-//* ASK ABOUT WHAT TO MODEL TO REFERENCE WITHIN INCLUDE STATEMENT
+//* ASK ABOUT SEEDING
 router.get('/', async (req, res) => {
   try {
-    const tagData = await Tag.findAll()
+    const tagData = await Tag.findAll({
+      include: [
+        { model: Product, through: ProductTag, as: "product_tags" }
+      ],
+    });
     res.status(200).json(tagData);
   } catch (err) {
     res.status(500).json(err);
-  }
+  };
 });
 
 //* ASK ABOUT WHAT MODEL TO REFERENCE WITHIN WHERE/INCLUDE STATEMENT

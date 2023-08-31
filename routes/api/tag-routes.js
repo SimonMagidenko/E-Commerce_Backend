@@ -3,7 +3,6 @@ const { Tag, Product, ProductTag } = require('../../models');
 
 // The `/api/tags` endpoint
 
-//* ASK ABOUT SEEDING
 router.get('/', async (req, res) => {
   try {
     const tagData = await Tag.findAll({
@@ -17,13 +16,18 @@ router.get('/', async (req, res) => {
   };
 });
 
-//* ASK ABOUT WHAT MODEL TO REFERENCE WITHIN WHERE/INCLUDE STATEMENT
 router.get('/:id', async (req, res) => {
   try {
     const tagById = await Tag.findOne({
       where: {
         id: req.params.id,
       },
+
+      include: [
+        {
+          model: Product, through: ProductTag, as: "product_tags"
+        }
+      ]
     });
     res.json(tagById)
   } catch (error) {
@@ -31,7 +35,7 @@ router.get('/:id', async (req, res) => {
   };
 });
 
-//* ASK ABOUT NULL VALUE WHEN CREATING A NEW TAG
+
 router.post('/', async (req, res) => {
   try {
     const tagData = await Tag.create(req.body);
@@ -41,9 +45,22 @@ router.post('/', async (req, res) => {
   }
 });
 
-//* ASK ABOUT PUT REQUEST CREATION
-router.put('/:id', (req, res) => {
-
+router.put('/:id', async (req, res) => {
+  try {
+    const [updatedRowCount] = await Tag.update(req.body, {
+      where: {
+        id: req.params.id,
+      },
+    });
+    if (updatedRowCount === 0) {
+      res.status(404).json({ message: 'No Update found' });
+    } else {
+      res.status(200).json(updatedRowCount);
+    };
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  };
 });
 
 router.delete('/:id', async (req, res) => {

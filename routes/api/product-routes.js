@@ -46,52 +46,49 @@ router.post('/', async (req, res) => {
   }
 });
 
-// update product
+//* ASK QUESTION REGARDING PUT
 router.put('/:id', async (req, res) => {
-  // update product data
-  Product.update(req.body, {
-    where: {
-      id: req.params.id,
-    },
-  })
-    .then((product) => {
-      if (req.body.tagIds && req.body.tagIds.length) {
-        ProductTag.findAll({
-          where: { product_id: req.params.id }
-        }).then((productTags) => {
-          // create filtered list of new tag_ids
-          const productTagIds = productTags.map(({ tag_id }) => tag_id);
-          const newProductTags = req.body.tagIds
-            .filter((tag_id) => !productTagIds.includes(tag_id))
-            .map((tag_id) => {
-              return {
-                product_id: req.params.id,
-                tag_id,
-              };
-            });
-
-          // figure out which ones to remove
-          const productTagsToRemove = productTags
-            .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
-            .map(({ product_id }) => product_id);
-          // run both actions
-          return Promise.all([
-
-            ProductTag.destroy({ where: { product_id: productTagsToRemove, tag_id: { [Op.ne]: req.body.tagIds } } }),
-            ProductTag.bulkCreate(newProductTags),
-          ]);
-        });
-      }
-
-      return res.json(product);
-    })
-    .catch((err) => {
-      res.status(400).json(err);
+  try {
+    // Use Product.update() to update the product's properties
+    const [updatedRowCount, [updatedProduct]] = await Product.update(req.body, {
+      // Set the update condition using the product's ID from the URL
+      where: {
+        id: req.params.id,
+      },
+      // Instruct the update operation to return the updated row
+      returning: true,
     });
+    // Check if any rows were updated (if the product was found)
+    if (updatedRowCount === 0) {
+      // If no rows were updated, respond with a 404 error
+      res.status(404).json({ message: 'No Product found with this id!' });
+    } else {
+      // If rows were updated, respond with the updated product's data
+      res.status(200).json(updatedProduct);
+    }
+  } catch (err) {
+    res.status(400).json(err);
+  }
 });
 
-router.delete('/:id', (req, res) => {
-  // delete one product by its `id` value
+
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const productData = await Product.destroy({
+      where: {
+        id: req.params.id
+      }
+    });
+
+    if (!productData) {
+      res.status(404).json({ message: "No category found with this id!" });
+      return;
+    }
+    res.status(200).json(productData);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 module.exports = router;
